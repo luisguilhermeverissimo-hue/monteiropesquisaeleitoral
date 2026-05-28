@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PesqEle · Dashboard — Monteiro e Monteiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --verde:       #006851;  --verde-deep:  #004d3b;
+  --verde-mid:   #008060;  --verde-light: #e3f2ed;
+  --prata:       #AEADB3;  --prata-light: #e8e8ea;
+  --escuro:      #161614;  --off:         #f4f3f0;
+  --branco:      #ffffff;  --texto:       #1a1a18;
+  --muted:       #555553;  --hint:        #999997;
+  --borda:       rgba(0,104,81,0.15);
+  --borda-forte: rgba(0,104,81,0.30);
+  --radius:      6px;  --radius-lg: 12px;  --radius-xl: 16px;
+}
+body { font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--off); color:var(--texto); min-height:100vh; font-size:14px; line-height:1.65; }
+
+/* ── HEADER ─────────────────────────── */
+.site-header { background:var(--escuro); position:relative; overflow:hidden; }
+.site-header::before {
+  content:''; position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='340'%3E%3Cg fill='none' stroke='rgba(0,104,81,0.22)' stroke-width='0.8'%3E%3Cpolygon points='200,12 380,328 20,328'/%3E%3Cpolygon points='200,48 340,308 60,308'/%3E%3Cpolygon points='200,84 300,288 100,288'/%3E%3Cpolygon points='110,12 290,328 -70,328'/%3E%3Cpolygon points='290,12 470,328 110,328'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:400px 340px; background-repeat:repeat; pointer-events:none;
+}
+.site-header::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--verde) 0%,var(--verde-mid) 60%,transparent 100%); }
+.header-inner { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:1.6rem 2rem 1.4rem; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; }
+.header-brand { display:flex; align-items:center; gap:14px; }
+.header-eyebrow { font-size:9.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--verde-mid); margin-bottom:3px; }
+.header-nome { font-size:1.25rem; font-weight:700; color:var(--branco); letter-spacing:-0.01em; }
+.header-sub { font-size:11px; color:rgba(255,255,255,0.45); letter-spacing:0.03em; }
+.header-right { text-align:right; }
+.header-sys-label { font-size:9.5px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:3px; }
+.header-sys-title { font-size:1.0rem; font-weight:700; color:var(--branco); line-height:1.35; }
+.header-badge { display:inline-block; margin-top:6px; font-size:9px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--verde-mid); background:rgba(0,104,81,0.18); border:1px solid rgba(0,104,81,0.35); border-radius:20px; padding:2px 9px; }
+/* meta info no header */
+#header-meta { font-size:10px; color:rgba(255,255,255,0.35); margin-top:5px; }
+#header-meta strong { color:rgba(0,128,96,0.85); }
+
+/* ── LOADING OVERLAY ─────────────────── */
+#loading-overlay {
+  position:fixed; inset:0; background:rgba(244,243,240,0.92);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:9000; gap:16px;
+}
+.loading-spinner {
+  width:40px; height:40px; border:3px solid var(--borda-forte);
+  border-top-color:var(--verde); border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#loading-msg { font-size:13px; color:var(--muted); font-weight:500; }
+#loading-sub { font-size:11px; color:var(--hint); }
+
+/* ── COUNTER STRIP ───────────────────── */
+#counter-strip {
+  background:var(--branco); border-bottom:1px solid var(--borda);
+  display:none; align-items:center; justify-content:center;
+  gap:0; max-width:100%; overflow-x:auto;
+}
+.cs-item { display:flex; flex-direction:column; align-items:center; padding:14px 2.5rem; }
+.cs-n { font-size:1.6rem; font-weight:700; color:var(--verde); line-height:1; }
+.cs-l { font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--hint); margin-top:3px; }
+.cs-sep { width:1px; height:36px; background:var(--borda-forte); flex-shrink:0; }
+#cs-sync-info { font-size:10.5px; color:var(--hint); padding:0 2rem; white-space:nowrap; }
+#cs-sync-info strong { color:var(--verde); }
+
+/* ── TOOLBAR ─────────────────────────── */
+#bar {
+  background:var(--branco); border-bottom:1px solid var(--borda);
+  padding:10px 2rem; display:flex; align-items:flex-start;
+  gap:10px; flex-wrap:wrap; max-width:100%;
+  position:sticky; top:0; z-index:100;
+}
+.grp { display:flex; flex-direction:column; gap:4px; }
+.lbl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.10em; color:var(--hint); }
+select, input[type="text"] {
+  border:1px solid var(--borda-forte); border-radius:var(--radius);
+  padding:6px 9px; font-size:13px; font-family:inherit;
+  background:var(--off); color:var(--texto); outline:none;
+}
+select:focus, input[type="text"]:focus { border-color:var(--verde); }
+.tab-wrap { display:flex; border:1px solid var(--borda-forte); border-radius:var(--radius); overflow:hidden; }
+.tab-btn { border:none; background:transparent; padding:6px 12px; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; color:var(--muted); transition:all .15s; }
+.tab-on { background:var(--verde); color:var(--branco); }
+.tab-btn:hover:not(.tab-on) { background:var(--verde-light); color:var(--verde); }
+
+/* ── ACTIONS ─────────────────────────── */
+#actions { display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; margin-left:auto; }
+#file-count { font-size:11px; color:var(--verde); font-weight:600; align-self:center; display:none; }
+#btn-exp { display:none; background:transparent; color:var(--muted); border:1px solid var(--borda-forte); padding:6px 12px; border-radius:var(--radius); font-size:12px; font-family:inherit; cursor:pointer; }
+#btn-exp:hover { background:var(--verde-light); color:var(--verde); border-color:var(--verde); }
+#lbl-file { display:inline-block; cursor:pointer; font-size:12px; font-weight:500; color:var(--muted); border:1px solid var(--borda-forte); border-radius:var(--radius); padding:6px 12px; background:var(--off); transition:all .15s; }
+#lbl-file:hover { background:var(--verde-light); color:var(--verde); border-color:var(--verde); }
+#btn-refresh {
+  background:var(--verde); color:var(--branco); border:none;
+  padding:6px 14px; border-radius:var(--radius); font-size:12px; font-weight:600;
+  font-family:inherit; cursor:pointer; transition:background .15s;
+  display:flex; align-items:center; gap:5px;
+}
+#btn-refresh:hover:not(:disabled) { background:var(--verde-deep); }
+#btn-refresh:disabled { opacity:0.5; cursor:not-allowed; }
+#refresh-icon { display:inline-block; transition:transform 0.6s; }
+#btn-refresh.refreshing #refresh-icon { animation:spin 0.8s linear infinite; }
+
+/* ── ERRO ────────────────────────────── */
+#err-box { margin:1rem 2rem; background:#fff5f5; border:1px solid #f5c2c2; border-left:4px solid #c0392b; border-radius:var(--radius); padding:12px 16px; color:#7a1a1a; display:none; font-size:13px; }
+
+/* ── INSTRUÇÃO (setup) ───────────────── */
+#instrucao { max-width:580px; margin:4rem auto; text-align:center; padding:0 1.5rem; }
+.instr-icon { width:60px; height:60px; border-radius:50%; background:var(--verde-light); border:2px solid var(--borda-forte); display:flex; align-items:center; justify-content:center; margin:0 auto 1.2rem; font-size:1.5rem; }
+#instrucao h2 { font-size:1.05rem; font-weight:700; color:var(--texto); margin-bottom:1rem; }
+#instrucao p { color:var(--muted); font-size:13px; line-height:1.7; margin-bottom:.8rem; }
+.instr-code { background:var(--escuro); color:#a8d8c8; font-family:monospace; font-size:12px; padding:10px 14px; border-radius:var(--radius); text-align:left; margin:.8rem 0; white-space:pre-wrap; }
+#instrucao a { color:var(--verde); }
+.instr-sep { border:none; border-top:1px solid var(--borda); margin:1.5rem 0; }
+.instr-manual { font-size:12px; color:var(--hint); }
+.instr-manual ol { text-align:left; line-height:2.2; padding-left:1.4rem; }
+.instr-manual strong { color:var(--verde); }
+
+/* ── CONTEÚDO ────────────────────────── */
+#content { max-width:1100px; margin:0 auto; padding:1.5rem 2rem 3rem; display:none; }
+.sec-label { font-size:9.5px; font-weight:700; color:var(--hint); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:1rem; }
+
+/* ── MAPA UF ─────────────────────────── */
+.mapa-card { background:var(--branco); border:1px solid var(--borda); border-radius:var(--radius-xl); overflow:hidden; margin-bottom:1.5rem; box-shadow:0 1px 6px rgba(0,104,81,0.05); }
+.mapa-card-header { background:var(--verde); padding:10px 1.25rem; display:flex; align-items:center; gap:8px; position:relative; overflow:hidden; }
+.mapa-card-header::before { content:''; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='1'%3E%3Cpolygon points='100,6 190,154 10,154'/%3E%3Cpolygon points='100,28 170,140 30,140'/%3E%3C/g%3E%3C/svg%3E"); background-size:200px 160px; background-repeat:repeat; pointer-events:none; }
+.mapa-card-header span { position:relative; z-index:1; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.90); }
+.mapa-card-body { padding:1.2rem 1.25rem; }
+.uf-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:1.2rem; }
+.uf-card { width:58px; border:1px solid var(--borda); border-radius:var(--radius); padding:7px 5px; text-align:center; transition:all .15s; background:var(--off); cursor:default; }
+.uf-card.hot { cursor:pointer; background:var(--verde-light); border-color:var(--borda-forte); }
+.uf-card.hot:hover { background:var(--verde); border-color:var(--verde); }
+.uf-card.hot:hover .uf-sigla,.uf-card.hot:hover .uf-cnt { color:var(--branco); }
+.uf-sigla { font-weight:700; font-size:12px; color:var(--muted); }
+.uf-card.hot .uf-sigla { color:var(--verde); }
+.uf-cnt { font-size:1.3rem; font-weight:700; line-height:1; margin-top:3px; color:var(--hint); }
+.uf-card.hot .uf-cnt { color:var(--verde); }
+
+/* ── TABELA ──────────────────────────── */
+#tbl-controls { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
+#btn-clr { background:transparent; color:var(--muted); border:1px solid var(--borda-forte); padding:4px 10px; border-radius:20px; font-size:11px; font-family:inherit; cursor:pointer; display:none; }
+#btn-clr:hover { background:var(--verde-light); color:var(--verde); border-color:var(--verde); }
+.tbl-card { background:var(--branco); border:1px solid var(--borda); border-radius:var(--radius-xl); overflow:hidden; box-shadow:0 1px 6px rgba(0,104,81,0.05); }
+.tbl-card-header { background:var(--verde); padding:10px 1.25rem; display:flex; align-items:center; justify-content:space-between; position:relative; overflow:hidden; }
+.tbl-card-header::before { content:''; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='1'%3E%3Cpolygon points='100,6 190,154 10,154'/%3E%3Cpolygon points='100,28 170,140 30,140'/%3E%3C/g%3E%3C/svg%3E"); background-size:200px 160px; background-repeat:repeat; pointer-events:none; }
+.tbl-card-header > * { position:relative; z-index:1; }
+.tbl-head-title { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.90); }
+.tbl-head-count { font-size:11px; color:rgba(255,255,255,0.60); }
+#tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { padding:9px 12px; text-align:left; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--off); border-bottom:1px solid var(--borda-forte); cursor:pointer; white-space:nowrap; user-select:none; }
+th:hover { color:var(--verde); background:var(--verde-light); }
+td { padding:8px 12px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--verde-light); }
+.td-uf { font-weight:700; color:var(--verde); font-size:11px; }
+.td-reg { font-family:monospace; font-size:11px; color:var(--muted); }
+.td-link { color:var(--verde); cursor:pointer; font-size:11px; text-decoration:underline; text-underline-offset:2px; white-space:nowrap; }
+.td-empty { text-align:center; color:var(--hint); padding:2rem; }
+
+/* ── FICHAS ──────────────────────────── */
+#ficha-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+.fcard { background:var(--branco); border:1px solid var(--borda); border-radius:var(--radius-lg); padding:1rem 1.1rem; cursor:pointer; transition:all .15s; }
+.fcard:hover { border-color:var(--verde); box-shadow:0 4px 16px rgba(0,104,81,0.12); transform:translateY(-1px); }
+.fcard-reg { font-family:monospace; font-size:10px; color:var(--hint); }
+.fcard-date { font-size:11px; color:var(--muted); }
+.fcard-empresa { font-size:13px; font-weight:700; color:var(--texto); margin-bottom:3px; line-height:1.35; }
+.fcard-local { font-size:11px; color:var(--muted); margin-bottom:8px; }
+.tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+.tag { background:var(--verde-light); color:var(--verde); font-size:10px; font-weight:600; padding:2px 7px; border-radius:20px; border:1px solid var(--borda-forte); white-space:nowrap; }
+.fcard-stats { display:flex; gap:12px; margin-top:8px; padding-top:8px; border-top:1px solid var(--borda); }
+.fcard-stat-key { font-size:9px; color:var(--hint); text-transform:uppercase; letter-spacing:0.07em; font-weight:700; }
+.fcard-stat-val { font-size:12px; color:var(--texto); font-weight:600; }
+.fcard-proprio { margin-top:8px; font-size:10px; font-weight:700; color:var(--verde); }
+
+/* ── MODAL ───────────────────────────── */
+#modal-bg { position:fixed; inset:0; background:rgba(22,22,20,0.65); z-index:9999; display:none; align-items:flex-end; justify-content:center; padding-bottom:0; }
+#modal-bg { display:none; }
+#modal-bg[style*="block"] { display:flex !important; }
+#modal { background:var(--branco); border-radius:var(--radius-xl) var(--radius-xl) 0 0; width:100%; max-width:680px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 -8px 40px rgba(0,0,0,0.25); }
+#modal-head { background:var(--verde); padding:1.1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; border-radius:var(--radius-xl) var(--radius-xl) 0 0; }
+#modal-title { font-size:1rem; font-weight:700; color:var(--branco); line-height:1.3; }
+#modal-reg { font-size:10px; color:rgba(255,255,255,0.6); margin-top:4px; font-family:monospace; }
+#modal-close { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:var(--branco); width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+#modal-close:hover { background:rgba(255,255,255,0.28); }
+#modal-body { padding:1.5rem; overflow-y:auto; max-height:78vh; }
+.f-sec { margin-bottom:1.5rem; }
+.f-sec-title { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--verde); border-bottom:1px solid var(--borda-forte); padding-bottom:5px; margin-bottom:12px; }
+.f-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.f-full { grid-column:1/-1; }
+.f-key { font-size:9.5px; color:var(--hint); text-transform:uppercase; letter-spacing:0.07em; font-weight:600; margin-bottom:3px; }
+.f-val { color:var(--texto); font-size:13px; line-height:1.5; }
+.f-val.green { color:var(--verde); font-weight:700; }
+.f-long { background:var(--off); border:1px solid var(--borda); border-left:3px solid var(--verde); border-radius:var(--radius); padding:10px 12px; font-size:12px; color:var(--muted); line-height:1.7; white-space:pre-wrap; word-break:break-word; max-height:180px; overflow-y:auto; }
+.f-long::-webkit-scrollbar { width:5px; }
+.f-long::-webkit-scrollbar-thumb { background:var(--borda-forte); border-radius:3px; }
+
+/* ── FOOTER ──────────────────────────── */
+footer { max-width:1100px; margin:0 auto 2rem; }
+.footer-firma { display:flex; align-items:center; gap:8px; padding:0.85rem 1.5rem; font-size:11px; color:var(--prata); letter-spacing:0.03em; flex-wrap:wrap; border-top:1px solid var(--borda); background:var(--off); border-radius:var(--radius-lg); }
+.footer-sep { color:var(--borda-forte); }
+
+@media(max-width:640px) {
+  .header-right { display:none; }
+  #bar { padding:10px 1rem; }
+  #content { padding:1rem 1rem 2rem; }
+  .f-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p id="loading-msg">Carregando dados…</p>
+  <p id="loading-sub">Buscando registros na planilha Google Sheets</p>
+</div>
+
+<!-- MODAL -->
+<div id="modal-bg" onclick="closeModal(event)">
+  <div id="modal">
+    <div id="modal-head">
+      <div><div id="modal-title"></div><div id="modal-reg"></div></div>
+      <button id="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-text">
+        <p class="header-eyebrow">TSE · Eleições 2026</p>
+        <p class="header-nome">Monteiro e Monteiro</p>
+        <p class="header-sub">Advogados Associados</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <p class="header-sys-label">Sistema de Monitoramento</p>
+      <p class="header-sys-title">Pesquisas Eleitorais<br>Registradas · PesqEle</p>
+      <span class="header-badge">Res. TSE nº 23.600/2019</span>
+      <p id="header-meta"></p>
+    </div>
+  </div>
+</header>
+
+<!-- COUNTER STRIP -->
+<div id="counter-strip">
+  <div class="cs-item">
+    <span class="cs-n" id="cs-total">—</span>
+    <span class="cs-l">Registros no dia</span>
+  </div>
+  <div class="cs-sep"></div>
+  <div class="cs-item">
+    <span class="cs-n" id="cs-ufs">—</span>
+    <span class="cs-l">Estados com pesquisa</span>
+  </div>
+  <div class="cs-sep"></div>
+  <div class="cs-item">
+    <span class="cs-n" id="cs-date">—</span>
+    <span class="cs-l">Data selecionada</span>
+  </div>
+  <div class="cs-sep"></div>
+  <span id="cs-sync-info"></span>
+</div>
+
+<!-- TOOLBAR -->
+<div id="bar">
+  <div class="grp">
+    <span class="lbl">Data de registro</span>
+    <select id="sel-date" onchange="render()"><option value="">—</option></select>
+  </div>
+  <div class="grp">
+    <span class="lbl">Estado (UF)</span>
+    <select id="sel-uf" onchange="render()"><option value="TODOS">Todos</option></select>
+  </div>
+  <div class="grp">
+    <span class="lbl">Cargo</span>
+    <select id="sel-cargo" onchange="render()"><option value="TODOS">Todos</option></select>
+  </div>
+  <div class="grp">
+    <span class="lbl">Buscar</span>
+    <input type="text" id="busca" placeholder="empresa, município, nº registro…" oninput="render()">
+  </div>
+  <div class="grp">
+    <span class="lbl">Visão</span>
+    <div class="tab-wrap">
+      <button class="tab-btn tab-on"  id="tab-mapa"   onclick="setView('mapa')">Mapa UF</button>
+      <button class="tab-btn tab-off" id="tab-tabela" onclick="setView('tabela')">Tabela</button>
+      <button class="tab-btn tab-off" id="tab-ficha"  onclick="setView('ficha')">Fichas</button>
+    </div>
+  </div>
+  <div id="actions">
+    <span id="file-count"></span>
+    <button id="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <button id="btn-refresh" onclick="carregarDoPlanilha(true)">
+      <span id="refresh-icon">🔄</span> Atualizar
+    </button>
+    <label id="lbl-file" title="Carregar CSVs locais como alternativa">📂 Manual
+      <input type="file" id="file-input" accept=".csv,.txt" multiple style="display:none" onchange="loadFiles(this)">
+    </label>
+  </div>
+</div>
+
+<div id="err-box"></div>
+
+<!-- INSTRUÇÃO (mostrada quando SHEET_ID não configurado) -->
+<div id="instrucao" style="display:none">
+  <div class="instr-icon">⚙️</div>
+  <h2>Configure a planilha</h2>
+  <p>Abra <strong>pesqele-dashboard.html</strong> em um editor de texto e localize a linha:</p>
+  <div class="instr-code">const URL_DADOS = "https://docs.google.com/spreadsheets/d/1dutvbKFOE2kcvyUmcwraBGMy0fvZHlw2Sz-vBFDDQF4/gviz/tq?tqx=out:csv&gid=1041307058";</div>
+  <p>Substitua pela URL gerada em <strong>Arquivo → Compartilhar → Publicar na Web → aba "dados" → CSV → Publicar</strong>.</p>
+  <p>Execute <strong>atualizar_pesqele.py</strong> ao menos uma vez para popular a planilha antes de abrir o dashboard.</p>
+  <hr class="instr-sep">
+  <div class="instr-manual">
+    <p><strong>Ou carregue dados manualmente enquanto configura:</strong></p>
+    <ol>
+      <li>Acesse <a href="https://dadosabertos.tse.jus.br/dataset/pesquisas-eleitorais-2026" target="_blank">dadosabertos.tse.jus.br</a></li>
+      <li>Baixe <strong>pesquisa_eleitoral_2026.zip</strong> e extraia</li>
+      <li>Clique em <strong>📂 Manual</strong> na barra acima</li>
+    </ol>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="content">
+  <div id="view-mapa"><div id="mapa-regioes"></div></div>
+  <div id="view-tabela" style="display:none">
+    <div id="tbl-controls">
+      <p class="sec-label" id="tbl-label" style="margin:0"></p>
+      <button id="btn-clr" onclick="clearFiltros()">✕ Limpar filtros</button>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-card-header">
+        <span class="tbl-head-title" id="tbl-head-title">Registros</span>
+        <span class="tbl-head-count" id="tbl-head-count"></span>
+      </div>
+      <div id="tbl-wrap">
+        <table><thead id="tbl-head"></thead><tbody id="tbl-body"></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div id="view-ficha" style="display:none">
+    <p class="sec-label" id="ficha-label"></p>
+    <div id="ficha-grid"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-firma">
+    <span>Monteiro e Monteiro Advogados Associados</span>
+    <span class="footer-sep">·</span>
+    <span>Fonte: Portal de Dados Abertos do TSE</span>
+    <span class="footer-sep">·</span>
+    <span>dadosabertos.tse.jus.br</span>
+    <span class="footer-sep">·</span>
+    <span>Res. TSE nº 23.600/2019</span>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  CONFIGURAÇÃO — cole as URLs geradas em "Publicar na Web"
+// ══════════════════════════════════════════════════════════════════
+
+// 1. Abra a planilha → Arquivo → Compartilhar → Publicar na Web
+// 2. Selecione a aba "dados" → formato "Valores separados por vírgula (.csv)"
+// 3. Clique em Publicar e cole a URL abaixo:
+const URL_DADOS = "https://docs.google.com/spreadsheets/d/1dutvbKFOE2kcvyUmcwraBGMy0fvZHlw2Sz-vBFDDQF4/gviz/tq?tqx=out:csv&gid=1041307058";
+
+// 4. Repita para a aba "meta" e cole abaixo (ou deixe vazio):
+const URL_META  = "https://docs.google.com/spreadsheets/d/1dutvbKFOE2kcvyUmcwraBGMy0fvZHlw2Sz-vBFDDQF4/gviz/tq?tqx=out:csv&gid=930271753";
+
+// ══════════════════════════════════════════════════════════════════
+
+// ── CONSTANTES ────────────────────────────────────────────────────
+const UF_NAMES = {
+  AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",
+  DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",
+  MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",
+  PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",
+  RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",
+  SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins",BR:"Nacional"
+};
+const REGIONS = {
+  Norte:["AC","AM","AP","PA","RO","RR","TO"],
+  Nordeste:["AL","BA","CE","MA","PB","PE","PI","RN","SE"],
+  "Centro-Oeste":["DF","GO","MS","MT"],
+  Sudeste:["ES","MG","RJ","SP"],
+  Sul:["PR","RS","SC"],
+  Nacional:["BR"]
+};
+const TBL_COLS = [
+  {k:"NR_PROTOCOLO_REGISTRO",l:"Nº Registro"},{k:"DT_REGISTRO",l:"Data reg."},
+  {k:"SG_UF",l:"UF"},{k:"NM_UE",l:"Município/UE"},{k:"NM_EMPRESA",l:"Empresa"},
+  {k:"DS_CARGO",l:"Cargos"},{k:"DT_INICIO_PESQUISA",l:"Início"},
+  {k:"DT_FIM_PESQUISA",l:"Fim"},{k:"DT_DIVULGACAO",l:"Divulg."},
+  {k:"QT_ENTREVISTADO",l:"N"},{k:"VR_PESQUISA",l:"Valor"},
+  {k:"ST_PESQUISA_PROPRIA",l:"Própria"},
+];
+
+let allRows=[], currentView="mapa", sortCol="DT_REGISTRO", sortAsc=false;
+
+// ── PARSER CSV ────────────────────────────────────────────────────
+function parseCSV(text) {
+  if (text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  const fl=text.indexOf("\n"); const firstLine=fl>-1?text.slice(0,fl):text;
+  const sep=firstLine.split(";").length>=firstLine.split(",").length?";":",";;
+  // Google Sheets gviz CSV usa vírgula; TSE CSVs usam ponto-e-vírgula
+  const sepFinal=firstLine.split(";").length>2?";":","
+  const rows=[]; let i=0,n=text.length;
+  while(i<n){
+    const row=[]; let looping=true;
+    while(looping&&i<=n){
+      let field="";
+      if(i<n&&text[i]==='"'){
+        i++;
+        while(i<n){
+          if(text[i]==='"'){if(i+1<n&&text[i+1]==='"'){field+='"';i+=2;}else{i++;break;}}
+          else{field+=text[i++];}
+        }
+      } else {
+        while(i<n&&text[i]!==sepFinal&&text[i]!=="\r"&&text[i]!=="\n")field+=text[i++];
+      }
+      row.push(field.trim());
+      if(i<n&&text[i]===sepFinal){i++;}
+      else{if(i<n&&text[i]==="\r")i++;if(i<n&&text[i]==="\n")i++;looping=false;}
+    }
+    if(row.length>1||(row.length===1&&row[0]!==""))rows.push(row);
+  }
+  if(rows.length<2)return[];
+  const h=rows[0];
+  return rows.slice(1).map(v=>Object.fromEntries(h.map((k,i)=>[k,v[i]??""])));
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function normDate(v){if(!v)return"";v=v.trim();if(/^\d{2}\/\d{2}\/\d{4}/.test(v)){const[d,m,y]=v.slice(0,10).split("/");return`${y}-${m}-${d}`;}return v.slice(0,10);}
+function fmtBR(v){const s=normDate(v);if(!s||s.length<10)return v||"—";const[y,m,d]=s.split("-");return`${d}/${m}/${y}`;}
+function fmtMoeda(v){if(!v)return"—";const n=parseFloat(String(v).replace(",","."));if(isNaN(n))return v;return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function showErr(m){const e=document.getElementById("err-box");e.textContent="⚠ "+m;e.style.display="block";}
+function hideErr(){document.getElementById("err-box").style.display="none";}
+function setLoading(vis,msg,sub){
+  const ov=document.getElementById("loading-overlay");
+  ov.style.display=vis?"flex":"none";
+  if(msg)document.getElementById("loading-msg").textContent=msg;
+  if(sub!==undefined)document.getElementById("loading-sub").textContent=sub||"";
+}
+
+// ── INGESTÃO DE DADOS (compartilhada por Sheets e upload manual) ──
+function ingestData(combined, fonte) {
+  const keys=Object.keys(combined[0]);
+  if(!keys.includes("DT_REGISTRO")||!keys.includes("SG_UF")){
+    throw new Error("Colunas DT_REGISTRO ou SG_UF não encontradas. Colunas detectadas: "+keys.slice(0,8).join(", ")+"…");
+  }
+  allRows=combined.map(r=>({...r,_date:normDate(r.DT_REGISTRO||""),_uf:(r.SG_UF||"").toUpperCase().trim()}));
+  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v);
+  const validUF=v=>/^[A-Z]{2}$/.test(v)&&(v in UF_NAMES);
+  const datesArr=[...new Set(allRows.map(r=>r._date).filter(validDate))].sort().reverse();
+  const ufsArr=[...new Set(allRows.map(r=>r._uf).filter(validUF))].sort();
+  const cargosSet=new Set();
+  allRows.forEach(r=>(r.DS_CARGO||"").split(",").forEach(c=>{const t=c.trim();if(t.length>=3)cargosSet.add(t);}));
+
+  document.getElementById("sel-date").innerHTML=datesArr.map(d=>`<option value="${d}">${fmtBR(d)}</option>`).join("");
+  document.getElementById("sel-uf").innerHTML=`<option value="TODOS">Todos os estados</option>`+ufsArr.map(uf=>`<option value="${uf}">${uf}${UF_NAMES[uf]?" – "+UF_NAMES[uf]:""}</option>`).join("");
+  document.getElementById("sel-cargo").innerHTML=`<option value="TODOS">Todos os cargos</option>`+[...cargosSet].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+  const fc=document.getElementById("file-count");
+  fc.textContent=`✓ ${combined.length.toLocaleString("pt-BR")} registros${fonte?" · "+fonte:""}`;
+  fc.style.display="inline";
+  document.getElementById("instrucao").style.display="none";
+  document.getElementById("content").style.display="block";
+  document.getElementById("btn-exp").style.display="inline";
+  document.getElementById("counter-strip").style.display="flex";
+  render();
+}
+
+// ── UTILITÁRIO: fetch direto (gviz/tq tem CORS nativo) ───────────
+async function fetchPublico(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const text = await r.text();
+  // gviz retorna HTML se a planilha não estiver compartilhada corretamente
+  if (text.trim().startsWith("<")) {
+    throw new Error(
+      "Planilha não está compartilhada. No Google Sheets: " +
+      "Compartilhar → Qualquer pessoa com o link → Visualizador."
+    );
+  }
+  return text;
+}
+
+// ── CARGA DO GOOGLE SHEETS (principal) ───────────────────────────
+async function carregarDoPlanilha(manual=false) {
+  if(!URL_DADOS || URL_DADOS==="COLE_AQUI_A_URL_DA_ABA_DADOS"){
+    setLoading(false);
+    document.getElementById("instrucao").style.display="block";
+    return;
+  }
+
+  const btn=document.getElementById("btn-refresh");
+  btn.disabled=true;
+  btn.classList.add("refreshing");
+  hideErr();
+
+  if(manual){
+    setLoading(true,"Atualizando dados…","Buscando registros na planilha Google Sheets");
+  }
+
+  try {
+    // ── Metadados (aba 'meta') ─────────────────────────────────
+    if(URL_META){
+      try {
+        const mt = await fetchPublico(URL_META);
+        const metaRows = parseCSV(mt);
+        const meta = Object.fromEntries(metaRows.map(r=>[r.chave,r.valor]));
+        if(meta.ultima_atualizacao){
+          const total=parseInt(meta.total_registros||0).toLocaleString("pt-BR");
+          document.getElementById("header-meta").innerHTML=
+            `Atualizado em <strong>${meta.ultima_atualizacao}</strong>`;
+          document.getElementById("cs-sync-info").innerHTML=
+            `<strong>TSE</strong> · Última sync: ${meta.ultima_atualizacao} · ${total} reg.`;
+        }
+      } catch(e){ /* metadados são opcionais */ }
+    }
+
+    // ── Dados (aba 'dados') ────────────────────────────────────
+    if(manual) setLoading(true,"Carregando registros…","Processando planilha");
+
+    const text = await fetchPublico(URL_DADOS);
+
+    const combined=parseCSV(text);
+    if(!combined.length){
+      throw new Error(
+        "A aba 'dados' está vazia. Execute atualizar_pesqele.py para popular a planilha."
+      );
+    }
+
+    ingestData(combined,"Google Sheets");
+
+  } catch(e){
+    setLoading(false);
+    showErr("Erro ao carregar dados: " + e.message);
+    if(!allRows.length){
+      document.getElementById("instrucao").style.display="block";
+    }
+  } finally {
+    setLoading(false);
+    btn.disabled=false;
+    btn.classList.remove("refreshing");
+  }
+}
+
+// ── CARGA MANUAL (fallback) ───────────────────────────────────────
+async function loadFiles(input) {
+  hideErr();
+  const files=Array.from(input.files).filter(f=>/\.(csv|txt)$/i.test(f.name));
+  if(!files.length){showErr("Nenhum arquivo .csv encontrado.");return;}
+  let combined=[];
+  for(const file of files){
+    let text="";
+    try{
+      text=await file.text();
+      if(text.includes("\uFFFD")||text.includes("Ã")){
+        text=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file,"latin1");});
+      }
+    } catch{
+      try{text=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file,"latin1");});}catch(e){showErr("Erro: "+e.message);continue;}
+    }
+    combined=combined.concat(parseCSV(text));
+  }
+  if(!combined.length){showErr("Nenhum dado reconhecido.");return;}
+  try{ingestData(combined,`${files.length} arquivo(s) local(is)`);}catch(e){showErr(e.message);}
+  input.value="";
+}
+
+// ── FILTROS / SORT ────────────────────────────────────────────────
+function getFilters(){return{date:document.getElementById("sel-date").value,uf:document.getElementById("sel-uf").value,cargo:document.getElementById("sel-cargo").value,busca:document.getElementById("busca").value.toLowerCase().trim()};}
+function getFiltered(){
+  const{date,uf,cargo,busca}=getFilters();
+  return allRows.filter(r=>{
+    if(date&&r._date!==date)return false;
+    if(uf!=="TODOS"&&r._uf!==uf)return false;
+    if(cargo!=="TODOS"&&!(r.DS_CARGO||"").split(",").map(c=>c.trim()).includes(cargo))return false;
+    if(busca){const hay=[r.NR_PROTOCOLO_REGISTRO,r.NM_EMPRESA,r.NM_EMPRESA_FANTASIA,r.NM_UE,r.DS_CARGO,r.NM_ESTATISTICO_RESP].join(" ").toLowerCase();if(!hay.includes(busca))return false;}
+    return true;
+  });
+}
+function sortRows(rows){return[...rows].sort((a,b)=>{const va=a[sortCol]||"",vb=b[sortCol]||"";return sortAsc?va.localeCompare(vb):vb.localeCompare(va);});}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render(){
+  const{date}=getFilters();const filtered=getFiltered();
+  const totalDia=allRows.filter(r=>r._date===date).length;
+  const ufsComDados=new Set(allRows.filter(r=>r._date===date).map(r=>r._uf)).size;
+  document.getElementById("cs-total").textContent=totalDia||"0";
+  document.getElementById("cs-ufs").textContent=ufsComDados||"0";
+  document.getElementById("cs-date").textContent=fmtBR(date)||"—";
+  if(currentView==="mapa")renderMapa(date);
+  else if(currentView==="tabela")renderTabela(filtered);
+  else renderFichas(filtered);
+}
+
+function renderMapa(date){
+  const resumo={};
+  Object.keys(UF_NAMES).forEach(uf=>{resumo[uf]=allRows.filter(r=>r._date===date&&r._uf===uf).length;});
+  let html="";
+  for(const[reg,ufs]of Object.entries(REGIONS)){
+    html+=`<div class="mapa-card"><div class="mapa-card-header"><span>${reg}</span></div><div class="mapa-card-body"><div class="uf-row">`;
+    for(const uf of ufs){
+      const cnt=resumo[uf]||0;
+      const click=cnt>0?`onclick="selectUF('${uf}')"` :"";
+      html+=`<div class="uf-card${cnt>0?" hot":""}" ${click} title="${UF_NAMES[uf]||uf}${cnt>0?" · "+cnt+" registro"+(cnt>1?"s":""):""}"><div class="uf-sigla">${uf}</div><div class="uf-cnt">${cnt}</div></div>`;
+    }
+    html+=`</div></div></div>`;
+  }
+  document.getElementById("mapa-regioes").innerHTML=html;
+}
+
+function renderTabela(filtered){
+  const{uf,cargo,busca}=getFilters();const hasFilter=uf!=="TODOS"||cargo!=="TODOS"||busca;
+  document.getElementById("btn-clr").style.display=hasFilter?"inline":"none";
+  const sorted=sortRows(filtered);
+  document.getElementById("tbl-label").textContent=`${sorted.length} registro${sorted.length!==1?"s":""}`;
+  document.getElementById("tbl-head-title").textContent=`Registros${uf!=="TODOS"?" · "+uf:""}`;
+  document.getElementById("tbl-head-count").textContent=`${sorted.length} resultado${sorted.length!==1?"s":""}`;
+  const availCols=TBL_COLS.filter(c=>allRows.length&&c.k in allRows[0]);
+  document.getElementById("tbl-head").innerHTML=`<tr><th style="width:30px;color:var(--hint)">#</th>`+availCols.map(c=>`<th onclick="doSort('${c.k}')">${c.l}${sortCol===c.k?(sortAsc?" ↑":" ↓"):""}</th>`).join("")+`<th></th></tr>`;
+  if(!sorted.length){document.getElementById("tbl-body").innerHTML=`<tr><td colspan="${availCols.length+2}" class="td-empty">Sem registros com os filtros atuais.</td></tr>`;return;}
+  document.getElementById("tbl-body").innerHTML=sorted.map((r,i)=>{
+    const idx=allRows.indexOf(r);
+    const cells=availCols.map(c=>{
+      let v=r[c.k]||"";
+      if(/DT_/.test(c.k))v=fmtBR(v);
+      if(c.k==="VR_PESQUISA")v=fmtMoeda(v);
+      if(c.k==="SG_UF")return`<td class="td-uf">${esc(v)}</td>`;
+      if(c.k==="ST_PESQUISA_PROPRIA")return`<td style="text-align:center;color:var(--verde)">${v==="S"?"✓":"—"}</td>`;
+      if(c.k==="NR_PROTOCOLO_REGISTRO")return`<td class="td-reg">${esc(v)}</td>`;
+      if(c.k==="NM_EMPRESA")return`<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(v)}">${esc(v)}</td>`;
+      if(c.k==="DS_CARGO")return`<td style="font-size:11px;color:var(--muted)">${esc(v)}</td>`;
+      return`<td>${esc(v)}</td>`;
+    }).join("");
+    return`<tr><td style="color:var(--hint);font-size:11px">${i+1}</td>${cells}<td><span class="td-link" onclick="openFicha(${idx})">ver ficha</span></td></tr>`;
+  }).join("");
+}
+
+function renderFichas(filtered){
+  const sorted=sortRows(filtered);
+  document.getElementById("ficha-label").textContent=`${sorted.length} registro${sorted.length!==1?"s":""}`;
+  if(!sorted.length){document.getElementById("ficha-grid").innerHTML=`<p style="color:var(--hint);padding:2rem;text-align:center">Sem registros com os filtros atuais.</p>`;return;}
+  document.getElementById("ficha-grid").innerHTML=sorted.map(r=>{
+    const idx=allRows.indexOf(r);const proprio=r.ST_PESQUISA_PROPRIA==="S";
+    const cargos=(r.DS_CARGO||"").split(",").map(c=>`<span class="tag">${esc(c.trim())}</span>`).join("");
+    return`<div class="fcard" onclick="openFicha(${idx})">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span class="fcard-reg">${esc(r.NR_PROTOCOLO_REGISTRO||"")}</span>
+        <span class="fcard-date">${fmtBR(r.DT_REGISTRO)}</span>
+      </div>
+      <div class="fcard-empresa">${esc(r.NM_EMPRESA||r.NM_EMPRESA_FANTASIA||"—")}</div>
+      <div class="fcard-local">${esc(r.SG_UF||"")} · ${esc(r.NM_UE||"")}</div>
+      <div class="tags">${cargos}</div>
+      <div class="fcard-stats">
+        <div><div class="fcard-stat-key">N</div><div class="fcard-stat-val">${esc(r.QT_ENTREVISTADO||"—")}</div></div>
+        <div><div class="fcard-stat-key">Início</div><div class="fcard-stat-val">${fmtBR(r.DT_INICIO_PESQUISA)}</div></div>
+        <div><div class="fcard-stat-key">Fim</div><div class="fcard-stat-val">${fmtBR(r.DT_FIM_PESQUISA)}</div></div>
+      </div>
+      ${proprio?`<div class="fcard-proprio">● Pesquisa própria</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function openFicha(idx){
+  const r=allRows[idx];if(!r)return;
+  document.getElementById("modal-title").textContent=r.NM_EMPRESA||r.NM_EMPRESA_FANTASIA||"—";
+  document.getElementById("modal-reg").textContent=`Protocolo: ${r.NR_PROTOCOLO_REGISTRO||"—"} · Registrado em ${fmtBR(r.DT_REGISTRO)}`;
+  const cargos=(r.DS_CARGO||"").split(",").map(c=>`<span class="tag">${esc(c.trim())}</span>`).join("");
+  const proprio=r.ST_PESQUISA_PROPRIA==="S"?`<span style="color:var(--verde);font-size:12px;font-weight:600">✓ Pesquisa própria (não contratada)</span>`:`<span style="color:var(--muted);font-size:12px">Pesquisa contratada por terceiro</span>`;
+  document.getElementById("modal-body").innerHTML=`
+    <div class="f-sec"><div class="f-sec-title">Identificação</div><div class="f-grid">
+      <div><div class="f-key">Nº Registro</div><div class="f-val green" style="font-family:monospace">${esc(r.NR_PROTOCOLO_REGISTRO||"—")}</div></div>
+      <div><div class="f-key">Data de Registro</div><div class="f-val">${fmtBR(r.DT_REGISTRO)}</div></div>
+      <div><div class="f-key">UF / Município</div><div class="f-val">${esc(r.SG_UF||"")} · ${esc(r.NM_UE||"")}</div></div>
+      <div><div class="f-key">Eleição</div><div class="f-val">${esc(r.NM_ELEICAO||"—")}</div></div>
+      <div class="f-full"><div class="f-key">Cargos pesquisados</div><div class="f-val"><div class="tags" style="margin:4px 0 0">${cargos}</div></div></div>
+    </div></div>
+    <div class="f-sec"><div class="f-sec-title">Empresa contratada</div><div class="f-grid">
+      <div><div class="f-key">Razão Social</div><div class="f-val">${esc(r.NM_EMPRESA||"—")}</div></div>
+      <div><div class="f-key">Nome Fantasia</div><div class="f-val">${esc(r.NM_EMPRESA_FANTASIA||"—")}</div></div>
+      <div><div class="f-key">CNPJ</div><div class="f-val" style="font-family:monospace">${esc(r.NR_CNPJ_EMPRESA||"—")}</div></div>
+      <div><div class="f-key">Estatístico (CONRE)</div><div class="f-val">${esc(r.NM_ESTATISTICO_RESP||"—")}${r.CD_CONRE?" · CONRE "+esc(r.CD_CONRE):""}</div></div>
+      <div class="f-full">${proprio}</div>
+    </div></div>
+    <div class="f-sec"><div class="f-sec-title">Período e Amostra</div><div class="f-grid">
+      <div><div class="f-key">Início</div><div class="f-val">${fmtBR(r.DT_INICIO_PESQUISA)}</div></div>
+      <div><div class="f-key">Fim</div><div class="f-val">${fmtBR(r.DT_FIM_PESQUISA)}</div></div>
+      <div><div class="f-key">Divulgação prevista</div><div class="f-val">${fmtBR(r.DT_DIVULGACAO)}</div></div>
+      <div><div class="f-key">N entrevistados</div><div class="f-val green">${esc(r.QT_ENTREVISTADO||"—")}</div></div>
+      <div><div class="f-key">Valor contratado</div><div class="f-val">${fmtMoeda(r.VR_PESQUISA)}</div></div>
+    </div></div>
+    <div class="f-sec"><div class="f-sec-title">Metodologia</div><div class="f-long">${esc(r.DS_METODOLOGIA_PESQUISA||"Não informado")}</div></div>
+    <div class="f-sec"><div class="f-sec-title">Plano amostral</div><div class="f-long">${esc(r.DS_PLANO_AMOSTRAL||"Não informado")}</div></div>
+    <div class="f-sec"><div class="f-sec-title">Sistema de controle</div><div class="f-long">${esc(r.DS_SISTEMA_CONTROLE||"Não informado")}</div></div>
+    ${r.DS_DADO_MUNICIPIO?`<div class="f-sec"><div class="f-sec-title">Municípios</div><div class="f-long">${esc(r.DS_DADO_MUNICIPIO)}</div></div>`:""}
+  `;
+  document.getElementById("modal-bg").style.display="block";
+}
+
+function closeModal(e){if(!e||e.target===document.getElementById("modal-bg")||e.currentTarget?.id==="modal-close")document.getElementById("modal-bg").style.display="none";}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.getElementById("modal-bg").style.display="none";});
+function setView(v){currentView=v;["mapa","tabela","ficha"].forEach(n=>{document.getElementById("view-"+n).style.display=n===v?"block":"none";document.getElementById("tab-"+n).className="tab-btn "+(n===v?"tab-on":"tab-off");});render();}
+function selectUF(uf){document.getElementById("sel-uf").value=uf;setView("tabela");}
+function clearFiltros(){document.getElementById("sel-uf").value="TODOS";document.getElementById("sel-cargo").value="TODOS";document.getElementById("busca").value="";render();}
+function doSort(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}render();}
+function exportCSV(){
+  const filtered=getFiltered();if(!filtered.length)return;
+  const sorted=sortRows(filtered);
+  const keys=TBL_COLS.filter(c=>c.k in(sorted[0]||{})).map(c=>c.k);
+  const blob=new Blob(["\uFEFF"+[keys.join(";"),...sorted.map(r=>keys.map(c=>`"${(r[c]||"").replace(/"/g,'""')}"`).join(";"))].join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  const{date,uf}=getFilters();a.download=`pesqele_${date}_${uf}.csv`;a.click();
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────────────────────
+window.addEventListener("load", () => { carregarDoPlanilha(); });
+</script>
+</body>
+</html>
