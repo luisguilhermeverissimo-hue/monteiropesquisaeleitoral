@@ -42,6 +42,8 @@ body { font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif; backgr
 /* meta info no header */
 #header-meta { font-size:10px; color:rgba(255,255,255,0.35); margin-top:5px; }
 #header-meta strong { color:rgba(0,128,96,0.85); }
+.header-contact { font-size:10px; color:rgba(255,255,255,0.32); margin-top:7px; letter-spacing:0.02em; }
+.header-contact a { color:rgba(0,128,96,0.75); text-decoration:none; }
 
 /* ── LOADING OVERLAY ─────────────────── */
 #loading-overlay {
@@ -66,6 +68,7 @@ body { font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif; backgr
 }
 .cs-item { display:flex; flex-direction:column; align-items:center; padding:14px 2.5rem; }
 .cs-n { font-size:1.6rem; font-weight:700; color:var(--verde); line-height:1; }
+.cs-n-sm { font-size:1.1rem; font-weight:700; color:var(--verde); line-height:1; }
 .cs-l { font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--hint); margin-top:3px; }
 .cs-sep { width:1px; height:36px; background:var(--borda-forte); flex-shrink:0; }
 #cs-sync-info { font-size:10.5px; color:var(--hint); padding:0 2rem; white-space:nowrap; }
@@ -85,7 +88,9 @@ select, input[type="text"] {
   padding:6px 9px; font-size:13px; font-family:inherit;
   background:var(--off); color:var(--texto); outline:none;
 }
-select:focus, input[type="text"]:focus { border-color:var(--verde); }
+select:focus, input[type="text"]:focus, input[type="date"]:focus { border-color:var(--verde); }
+input[type="date"] { border:1px solid var(--borda-forte); border-radius:var(--radius); padding:6px 9px; font-size:13px; font-family:inherit; background:var(--off); color:var(--texto); outline:none; }
+.period-sep { font-size:11px; color:var(--hint); align-self:center; margin-top:14px; }
 .tab-wrap { display:flex; border:1px solid var(--borda-forte); border-radius:var(--radius); overflow:hidden; }
 .tab-btn { border:none; background:transparent; padding:6px 12px; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; color:var(--muted); transition:all .15s; }
 .tab-on { background:var(--verde); color:var(--branco); }
@@ -244,6 +249,7 @@ footer { max-width:1100px; margin:0 auto 2rem; }
         <p class="header-eyebrow">TSE · Eleições 2026</p>
         <p class="header-nome">Monteiro e Monteiro</p>
         <p class="header-sub">Advogados Associados</p>
+        <p class="header-contact">novo@monteiro.adv.br &nbsp;·&nbsp; (81) 99195–0063</p>
       </div>
     </div>
     <div class="header-right">
@@ -259,7 +265,7 @@ footer { max-width:1100px; margin:0 auto 2rem; }
 <div id="counter-strip">
   <div class="cs-item">
     <span class="cs-n" id="cs-total">—</span>
-    <span class="cs-l">Registros no dia</span>
+    <span class="cs-l">Registros no período</span>
   </div>
   <div class="cs-sep"></div>
   <div class="cs-item">
@@ -268,8 +274,8 @@ footer { max-width:1100px; margin:0 auto 2rem; }
   </div>
   <div class="cs-sep"></div>
   <div class="cs-item">
-    <span class="cs-n" id="cs-date">—</span>
-    <span class="cs-l">Data selecionada</span>
+    <span class="cs-n cs-n-sm" id="cs-date">—</span>
+    <span class="cs-l">Período selecionado</span>
   </div>
   <div class="cs-sep"></div>
   <span id="cs-sync-info"></span>
@@ -278,8 +284,12 @@ footer { max-width:1100px; margin:0 auto 2rem; }
 <!-- TOOLBAR -->
 <div id="bar">
   <div class="grp">
-    <span class="lbl">Data de registro</span>
-    <select id="sel-date" onchange="render()"><option value="">—</option></select>
+    <span class="lbl">Período de registro</span>
+    <div style="display:flex;align-items:center;gap:5px">
+      <input type="date" id="date-from" onchange="render()" title="Data inicial">
+      <span class="period-sep">até</span>
+      <input type="date" id="date-to" onchange="render()" title="Data final">
+    </div>
   </div>
   <div class="grp">
     <span class="lbl">Estado (UF)</span>
@@ -468,12 +478,20 @@ function ingestData(combined, fonte) {
   allRows=combined.map(r=>({...r,_date:normDate(r.DT_REGISTRO||""),_uf:(r.SG_UF||"").toUpperCase().trim()}));
   const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v);
   const validUF=v=>/^[A-Z]{2}$/.test(v)&&(v in UF_NAMES);
-  const datesArr=[...new Set(allRows.map(r=>r._date).filter(validDate))].sort().reverse();
+  const datesArr=[...new Set(allRows.map(r=>r._date).filter(validDate))].sort();
   const ufsArr=[...new Set(allRows.map(r=>r._uf).filter(validUF))].sort();
   const cargosSet=new Set();
-  allRows.forEach(r=>(r.DS_CARGO||"").split(",").forEach(c=>{const t=c.trim();if(t.length>=3)cargosSet.add(t);}));
+  allRows.forEach(r=>(r.DS_CARGO||"").split(",").forEach(c=>{const t=c.trim();if(t.length>=3&&t!="#NULO#"&&t!="NULO")cargosSet.add(t);}));
 
-  document.getElementById("sel-date").innerHTML=datesArr.map(d=>`<option value="${d}">${fmtBR(d)}</option>`).join("");
+  // Preencher date pickers com min/max do dataset
+  if(datesArr.length){
+    document.getElementById("date-from").value=datesArr[0];
+    document.getElementById("date-to").value=datesArr[datesArr.length-1];
+    document.getElementById("date-from").min=datesArr[0];
+    document.getElementById("date-from").max=datesArr[datesArr.length-1];
+    document.getElementById("date-to").min=datesArr[0];
+    document.getElementById("date-to").max=datesArr[datesArr.length-1];
+  }
   document.getElementById("sel-uf").innerHTML=`<option value="TODOS">Todos os estados</option>`+ufsArr.map(uf=>`<option value="${uf}">${uf}${UF_NAMES[uf]?" – "+UF_NAMES[uf]:""}</option>`).join("");
   document.getElementById("sel-cargo").innerHTML=`<option value="TODOS">Todos os cargos</option>`+[...cargosSet].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
 
@@ -587,11 +605,12 @@ async function loadFiles(input) {
 }
 
 // ── FILTROS / SORT ────────────────────────────────────────────────
-function getFilters(){return{date:document.getElementById("sel-date").value,uf:document.getElementById("sel-uf").value,cargo:document.getElementById("sel-cargo").value,busca:document.getElementById("busca").value.toLowerCase().trim()};}
+function getFilters(){return{dateFrom:document.getElementById("date-from").value,dateTo:document.getElementById("date-to").value,uf:document.getElementById("sel-uf").value,cargo:document.getElementById("sel-cargo").value,busca:document.getElementById("busca").value.toLowerCase().trim()};}
 function getFiltered(){
-  const{date,uf,cargo,busca}=getFilters();
+  const{dateFrom,dateTo,uf,cargo,busca}=getFilters();
   return allRows.filter(r=>{
-    if(date&&r._date!==date)return false;
+    if(dateFrom&&r._date<dateFrom)return false;
+    if(dateTo&&r._date>dateTo)return false;
     if(uf!=="TODOS"&&r._uf!==uf)return false;
     if(cargo!=="TODOS"&&!(r.DS_CARGO||"").split(",").map(c=>c.trim()).includes(cargo))return false;
     if(busca){const hay=[r.NR_PROTOCOLO_REGISTRO,r.NM_EMPRESA,r.NM_EMPRESA_FANTASIA,r.NM_UE,r.DS_CARGO,r.NM_ESTATISTICO_RESP].join(" ").toLowerCase();if(!hay.includes(busca))return false;}
@@ -602,20 +621,21 @@ function sortRows(rows){return[...rows].sort((a,b)=>{const va=a[sortCol]||"",vb=
 
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
-  const{date}=getFilters();const filtered=getFiltered();
-  const totalDia=allRows.filter(r=>r._date===date).length;
-  const ufsComDados=new Set(allRows.filter(r=>r._date===date).map(r=>r._uf)).size;
-  document.getElementById("cs-total").textContent=totalDia||"0";
-  document.getElementById("cs-ufs").textContent=ufsComDados||"0";
-  document.getElementById("cs-date").textContent=fmtBR(date)||"—";
-  if(currentView==="mapa")renderMapa(date);
+  const{dateFrom,dateTo,uf}=getFilters();const filtered=getFiltered();
+  document.getElementById("cs-total").textContent=filtered.length.toLocaleString("pt-BR");
+  document.getElementById("cs-ufs").textContent=new Set(filtered.map(r=>r._uf).filter(v=>v.length===2)).size;
+  // Exibir período no contador
+  const pFrom=dateFrom?fmtBR(dateFrom):"?";
+  const pTo=dateTo?fmtBR(dateTo):"?";
+  document.getElementById("cs-date").textContent=pFrom===pTo?pFrom:pFrom+" – "+pTo;
+  if(currentView==="mapa")renderMapa(dateFrom,dateTo);
   else if(currentView==="tabela")renderTabela(filtered);
   else renderFichas(filtered);
 }
 
-function renderMapa(date){
+function renderMapa(dateFrom,dateTo){
   const resumo={};
-  Object.keys(UF_NAMES).forEach(uf=>{resumo[uf]=allRows.filter(r=>r._date===date&&r._uf===uf).length;});
+  Object.keys(UF_NAMES).forEach(uf=>{resumo[uf]=allRows.filter(r=>(!dateFrom||r._date>=dateFrom)&&(!dateTo||r._date<=dateTo)&&r._uf===uf).length;});
   let html="";
   for(const[reg,ufs]of Object.entries(REGIONS)){
     html+=`<div class="mapa-card"><div class="mapa-card-header"><span>${reg}</span></div><div class="mapa-card-body"><div class="uf-row">`;
@@ -721,7 +741,16 @@ function closeModal(e){if(!e||e.target===document.getElementById("modal-bg")||e.
 document.addEventListener("keydown",e=>{if(e.key==="Escape")document.getElementById("modal-bg").style.display="none";});
 function setView(v){currentView=v;["mapa","tabela","ficha"].forEach(n=>{document.getElementById("view-"+n).style.display=n===v?"block":"none";document.getElementById("tab-"+n).className="tab-btn "+(n===v?"tab-on":"tab-off");});render();}
 function selectUF(uf){document.getElementById("sel-uf").value=uf;setView("tabela");}
-function clearFiltros(){document.getElementById("sel-uf").value="TODOS";document.getElementById("sel-cargo").value="TODOS";document.getElementById("busca").value="";render();}
+function clearFiltros(){
+  const df=document.getElementById("date-from");
+  const dt=document.getElementById("date-to");
+  if(df.min)df.value=df.min;
+  if(dt.max)dt.value=dt.max;
+  document.getElementById("sel-uf").value="TODOS";
+  document.getElementById("sel-cargo").value="TODOS";
+  document.getElementById("busca").value="";
+  render();
+}
 function doSort(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}render();}
 function exportCSV(){
   const filtered=getFiltered();if(!filtered.length)return;
@@ -729,7 +758,7 @@ function exportCSV(){
   const keys=TBL_COLS.filter(c=>c.k in(sorted[0]||{})).map(c=>c.k);
   const blob=new Blob(["\uFEFF"+[keys.join(";"),...sorted.map(r=>keys.map(c=>`"${(r[c]||"").replace(/"/g,'""')}"`).join(";"))].join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  const{date,uf}=getFilters();a.download=`pesqele_${date}_${uf}.csv`;a.click();
+  const{dateFrom,dateTo,uf}=getFilters();a.download=`pesqele_${dateFrom||"inicio"}_${dateTo||"fim"}_${uf}.csv`;a.click();
 }
 
 // ── INICIALIZAÇÃO ─────────────────────────────────────────────────
