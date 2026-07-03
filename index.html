@@ -22,29 +22,6 @@
 }
 body { font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--off); color:var(--texto); min-height:100vh; font-size:14px; line-height:1.65; }
 
-/* ── HEADER ─────────────────────────── */
-.site-header { background:var(--escuro); position:relative; overflow:hidden; }
-.site-header::before {
-  content:''; position:absolute; inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='340'%3E%3Cg fill='none' stroke='rgba(0,104,81,0.22)' stroke-width='0.8'%3E%3Cpolygon points='200,12 380,328 20,328'/%3E%3Cpolygon points='200,48 340,308 60,308'/%3E%3Cpolygon points='200,84 300,288 100,288'/%3E%3Cpolygon points='110,12 290,328 -70,328'/%3E%3Cpolygon points='290,12 470,328 110,328'/%3E%3C/g%3E%3C/svg%3E");
-  background-size:400px 340px; background-repeat:repeat; pointer-events:none;
-}
-.site-header::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--verde) 0%,var(--verde-mid) 60%,transparent 100%); }
-.header-inner { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:1.6rem 2rem 1.4rem; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; }
-.header-brand { display:flex; align-items:center; gap:14px; }
-.header-eyebrow { font-size:9.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--verde-mid); margin-bottom:3px; }
-.header-nome { font-size:1.25rem; font-weight:700; color:var(--branco); letter-spacing:0.08em; text-transform:uppercase; }
-.header-sub { font-size:11px; color:rgba(255,255,255,0.45); letter-spacing:0.03em; }
-.header-right { text-align:right; }
-.header-sys-label { font-size:9.5px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.10em; margin-bottom:3px; }
-.header-sys-title { font-size:1.0rem; font-weight:700; color:var(--branco); line-height:1.35; }
-.header-badge { display:inline-block; margin-top:6px; font-size:9px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--verde-mid); background:rgba(0,104,81,0.18); border:1px solid rgba(0,104,81,0.35); border-radius:20px; padding:2px 9px; }
-/* meta info no header */
-#header-meta { font-size:10px; color:rgba(255,255,255,0.35); margin-top:5px; }
-#header-meta strong { color:rgba(0,128,96,0.85); }
-.header-contact { font-size:10px; color:rgba(255,255,255,0.32); margin-top:7px; letter-spacing:0.02em; }
-.header-contact a { color:rgba(0,128,96,0.75); text-decoration:none; }
-
 /* ── LOADING OVERLAY ─────────────────── */
 #loading-overlay {
   position:fixed; inset:0; background:rgba(244,243,240,0.92);
@@ -214,7 +191,6 @@ footer { max-width:1100px; margin:0 auto 2rem; }
 .footer-sep { color:var(--borda-forte); }
 
 @media(max-width:640px) {
-  .header-right { display:none; }
   #bar { padding:10px 1rem; }
   #content { padding:1rem 1rem 2rem; }
   .f-grid { grid-template-columns:1fr; }
@@ -240,26 +216,6 @@ footer { max-width:1100px; margin:0 auto 2rem; }
     <div id="modal-body"></div>
   </div>
 </div>
-
-<!-- HEADER -->
-<header class="site-header">
-  <div class="header-inner">
-    <div class="header-brand">
-      <div class="header-text">
-        <p class="header-eyebrow">TSE · Eleições 2026</p>
-        <p class="header-nome">Monteiro e Monteiro</p>
-        <p class="header-sub">Advogados Associados</p>
-        <p class="header-contact">novo@monteiro.adv.br &nbsp;·&nbsp; (81) 99195–0063</p>
-      </div>
-    </div>
-    <div class="header-right">
-      <p class="header-sys-label">Sistema de Monitoramento</p>
-      <p class="header-sys-title">Pesquisas Eleitorais<br>Registradas · PesqEle</p>
-      <span class="header-badge">Res. TSE nº 23.600/2019</span>
-      <p id="header-meta"></p>
-    </div>
-  </div>
-</header>
 
 <!-- COUNTER STRIP -->
 <div id="counter-strip">
@@ -384,16 +340,8 @@ footer { max-width:1100px; margin:0 auto 2rem; }
 // ══════════════════════════════════════════════════════════════════
 //  CONFIGURAÇÃO — cole as URLs geradas em "Publicar na Web"
 // ══════════════════════════════════════════════════════════════════
-
-// 1. Abra a planilha → Arquivo → Compartilhar → Publicar na Web
-// 2. Selecione a aba "dados" → formato "Valores separados por vírgula (.csv)"
-// 3. Clique em Publicar e cole a URL abaixo:
 const URL_DADOS = "https://docs.google.com/spreadsheets/d/1dutvbKFOE2kcvyUmcwraBGMy0fvZHlw2Sz-vBFDDQF4/gviz/tq?tqx=out:csv&gid=1041307058";
-
-// 4. Repita para a aba "meta" e cole abaixo (ou deixe vazio):
 const URL_META  = "https://docs.google.com/spreadsheets/d/1dutvbKFOE2kcvyUmcwraBGMy0fvZHlw2Sz-vBFDDQF4/gviz/tq?tqx=out:csv&gid=930271753";
-
-// ══════════════════════════════════════════════════════════════════
 
 // ── CONSTANTES ────────────────────────────────────────────────────
 const UF_NAMES = {
@@ -427,8 +375,6 @@ let allRows=[], currentView="mapa", sortCol="DT_REGISTRO", sortAsc=false;
 function parseCSV(text) {
   if (text.charCodeAt(0)===0xFEFF) text=text.slice(1);
   const fl=text.indexOf("\n"); const firstLine=fl>-1?text.slice(0,fl):text;
-  const sep=firstLine.split(";").length>=firstLine.split(",").length?";":",";;
-  // Google Sheets gviz CSV usa vírgula; TSE CSVs usam ponto-e-vírgula
   const sepFinal=firstLine.split(";").length>2?";":","
   const rows=[]; let i=0,n=text.length;
   while(i<n){
@@ -469,7 +415,7 @@ function setLoading(vis,msg,sub){
   if(sub!==undefined)document.getElementById("loading-sub").textContent=sub||"";
 }
 
-// ── INGESTÃO DE DADOS (compartilhada por Sheets e upload manual) ──
+// ── INGESTÃO DE DADOS ──────────────────────────────────────────────
 function ingestData(combined, fonte) {
   const keys=Object.keys(combined[0]);
   if(!keys.includes("DT_REGISTRO")||!keys.includes("SG_UF")){
@@ -483,7 +429,6 @@ function ingestData(combined, fonte) {
   const cargosSet=new Set();
   allRows.forEach(r=>(r.DS_CARGO||"").split(",").forEach(c=>{const t=c.trim();if(t.length>=3&&t!="#NULO#"&&t!="NULO")cargosSet.add(t);}));
 
-  // Preencher date pickers com min/max do dataset
   if(datesArr.length){
     document.getElementById("date-from").value=datesArr[0];
     document.getElementById("date-to").value=datesArr[datesArr.length-1];
@@ -505,12 +450,11 @@ function ingestData(combined, fonte) {
   render();
 }
 
-// ── UTILITÁRIO: fetch direto (gviz/tq tem CORS nativo) ───────────
+// ── FETCH PÚBLICO ─────────────────────────────────────────────────
 async function fetchPublico(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const text = await r.text();
-  // gviz retorna HTML se a planilha não estiver compartilhada corretamente
   if (text.trim().startsWith("<")) {
     throw new Error(
       "Planilha não está compartilhada. No Google Sheets: " +
@@ -520,7 +464,7 @@ async function fetchPublico(url) {
   return text;
 }
 
-// ── CARGA DO GOOGLE SHEETS (principal) ───────────────────────────
+// ── CARGA DO GOOGLE SHEETS ────────────────────────────────────────
 async function carregarDoPlanilha(manual=false) {
   if(!URL_DADOS || URL_DADOS==="COLE_AQUI_A_URL_DA_ABA_DADOS"){
     setLoading(false);
@@ -538,7 +482,6 @@ async function carregarDoPlanilha(manual=false) {
   }
 
   try {
-    // ── Metadados (aba 'meta') ─────────────────────────────────
     if(URL_META){
       try {
         const mt = await fetchPublico(URL_META);
@@ -546,15 +489,12 @@ async function carregarDoPlanilha(manual=false) {
         const meta = Object.fromEntries(metaRows.map(r=>[r.chave,r.valor]));
         if(meta.ultima_atualizacao){
           const total=parseInt(meta.total_registros||0).toLocaleString("pt-BR");
-          document.getElementById("header-meta").innerHTML=
-            `Atualizado em <strong>${meta.ultima_atualizacao}</strong>`;
           document.getElementById("cs-sync-info").innerHTML=
             `<strong>TSE</strong> · Última sync: ${meta.ultima_atualizacao} · ${total} reg.`;
         }
       } catch(e){ /* metadados são opcionais */ }
     }
 
-    // ── Dados (aba 'dados') ────────────────────────────────────
     if(manual) setLoading(true,"Carregando registros…","Processando planilha");
 
     const text = await fetchPublico(URL_DADOS);
@@ -624,7 +564,6 @@ function render(){
   const{dateFrom,dateTo,uf}=getFilters();const filtered=getFiltered();
   document.getElementById("cs-total").textContent=filtered.length.toLocaleString("pt-BR");
   document.getElementById("cs-ufs").textContent=new Set(filtered.map(r=>r._uf).filter(v=>v.length===2)).size;
-  // Exibir período no contador
   const pFrom=dateFrom?fmtBR(dateFrom):"?";
   const pTo=dateTo?fmtBR(dateTo):"?";
   document.getElementById("cs-date").textContent=pFrom===pTo?pFrom:pFrom+" – "+pTo;
